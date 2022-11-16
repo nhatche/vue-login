@@ -1,15 +1,17 @@
 <script>
 import axios from "axios";
 import {
-    ref,
-    isRef,
-    onMounted,
+  ref,
+  isRef,
+  onMounted,
 } from 'vue';
+
+import { store } from '../store.js'
 
 export default {
   data() {
     return {
-      at: "",
+      store
     };
   },
   methods: {
@@ -29,19 +31,23 @@ export default {
       // this.articleId = response.data.id;
       console.log(response.data.access_token);
       localStorage.setItem("access_token", response.data.access_token);
+      store.changeAt(response.data.access_token)
       return response;
     },
-    setAt(token){
-      this.at = token;
+    logOut() {
+      store.changeAt('')
+      localStorage.removeItem("access_token");
     }
   },
   setup() {
     onMounted(() => {
-      const access_token_1 = localStorage.access_token;
-      if (access_token_1) {
+      let access_token_1 = ''
+      if (localStorage.access_token) {
+        access_token_1 = localStorage.access_token;
         console.log("first run: " + access_token_1);
         // this.at = access_token_1;
-        this.setAt(access_token_1)
+        // this.setAt(access_token_1)
+        store.changeAt(access_token_1)
       }
     });
   },
@@ -49,30 +55,35 @@ export default {
 </script>
 
 <template>
-  <div v-if="at" class="noti">this is at {{ at }}</div>
-  <div v-else>
-    <div class="container__login"></div>
-    <div class="background">
-      <div class="shape"></div>
-      <div class="shape"></div>
-    </div>
-    <form @submit.prevent="onSubmit">
-      <h3>Login Here</h3>
-
-      <label for="username">Username</label>
-      <input type="text" placeholder="Email or Phone" id="username" />
-
-      <label for="password">Password</label>
-      <input type="password" placeholder="Password" id="password" />
-
-      <button type="submit" @click="created">Log In</button>
-      <div class="social">
-        <div class="go">Google</div>
-        <div class="fb">Facebook</div>
-      </div>
-      <h1>{{ access_token_1 }}</h1>
-    </form>
+  <div v-if="store.at != ''" class="noti">You are logged in
+    <button @click="logOut"> logout</button>
   </div>
+  <div v-else>
+    <div>
+      <div class="container__login"></div>
+      <div class="background">
+        <div class="shape"></div>
+        <div class="shape"></div>
+      </div>
+      <form @submit.prevent="onSubmit">
+        <h3>Login Here</h3>
+
+        <label for="username">Username</label>
+        <input type="text" placeholder="Email or Phone" id="username" />
+
+        <label for="password">Password</label>
+        <input type="password" placeholder="Password" id="password" />
+
+        <button type="submit" @click="created">Log In</button>
+        <div class="social">
+          <div class="go">Google</div>
+          <div class="fb">Facebook</div>
+        </div>
+        <h1>{{ access_token_1 }}</h1>
+      </form>
+    </div>
+  </div>
+
 </template>
 
 <style scoped>
@@ -82,6 +93,7 @@ export default {
   background-color: #23a2f6;
   color: #eaf0fb;
 }
+
 *,
 *:before,
 *:after {
