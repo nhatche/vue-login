@@ -1,62 +1,76 @@
 <script>
 import axios from "axios";
-import {
-  ref,
-  isRef,
-  onMounted,
-} from 'vue';
-
-import { store } from '../store.js'
+import useVuelidate from "@vuelidate/core";
+import { required, email } from "@vuelidate/validators";
 
 export default {
   data() {
     return {
-      store
+      v$: useVuelidate(),
+      username: "",
+      password: "",
+      at: "",
     };
   },
+  validations () {
+    return {
+      username: { required, email }, // Matches this.firstName
+      password: { required }, // Matches this.lastName
+    }
+  }
+  ,
+
   methods: {
-    onSubmit() {
-      console.log("submit");
-    },
-    async created() {
+    async onSubmit() {
       // POST request using axios with async/await
       const information = {
-        username: "test",
-        password: "test",
+        username: this.username,
+        password: this.password,
       };
       const response = await axios.post(
         "http://127.0.0.1:4000/token",
         information
       );
-      // this.articleId = response.data.id;
+      console.log(response);
       console.log(response.data.access_token);
       localStorage.setItem("access_token", response.data.access_token);
-      store.changeAt(response.data.access_token)
-      return response;
+      if(localStorage.access_token){
+        this.at = localStorage.access_token
+      }
+
+      this.username = "";
+      this.password = "";
+    },
+    async onSubmit1() {
+      const result = await this.v$.$validate();
+      if(result){
+        alert("success")
+        this.onSubmit()
+
+      }else{
+        alert("error")
+      }
     },
     logOut() {
-      store.changeAt('')
       localStorage.removeItem("access_token");
-    }
+      this.at = ''
+    },
   },
-  setup() {
-    onMounted(() => {
-      let access_token_1 = ''
+  mounted() {
+    let access_token_1 = "";
       if (localStorage.access_token) {
         access_token_1 = localStorage.access_token;
         console.log("first run: " + access_token_1);
-        // this.at = access_token_1;
-        // this.setAt(access_token_1)
-        store.changeAt(access_token_1)
+        this.at = access_token_1;
       }
-    });
   },
 };
 </script>
 
 <template>
-  <div v-if="store.at != ''" class="noti">You are logged in
-    <button @click="logOut"> logout</button>
+  <div v-if="at != ''" class="noti">
+    You are logged in
+    <button @click="logOut">logout</button>
   </div>
   <div v-else>
     <div>
@@ -69,12 +83,22 @@ export default {
         <h3>Login Here</h3>
 
         <label for="username">Username</label>
-        <input type="text" placeholder="Email or Phone" id="username" />
+        <input
+          v-model="username"
+          type="text"
+          placeholder="Email or Phone"
+          id="username"
+        />
 
         <label for="password">Password</label>
-        <input type="password" placeholder="Password" id="password" />
+        <input
+          v-model="password"
+          type="password"
+          placeholder="Password"
+          id="password"
+        />
 
-        <button type="submit" @click="created">Log In</button>
+        <button type="submit" @click="onSubmit1">Log In</button>
         <div class="social">
           <div class="go">Google</div>
           <div class="fb">Facebook</div>
@@ -83,7 +107,6 @@ export default {
       </form>
     </div>
   </div>
-
 </template>
 
 <style scoped>
