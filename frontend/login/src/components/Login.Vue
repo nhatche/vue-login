@@ -10,16 +10,15 @@ export default {
       username: "",
       password: "",
       at: "",
+      validation: null,
     };
   },
-  validations () {
+  validations() {
     return {
       username: { required, email }, // Matches this.firstName
       password: { required }, // Matches this.lastName
-    }
-  }
-  ,
-
+    };
+  },
   methods: {
     async onSubmit() {
       // POST request using axios with async/await
@@ -34,8 +33,8 @@ export default {
       console.log(response);
       console.log(response.data.access_token);
       localStorage.setItem("access_token", response.data.access_token);
-      if(localStorage.access_token){
-        this.at = localStorage.access_token
+      if (localStorage.access_token) {
+        this.at = localStorage.access_token;
       }
 
       this.username = "";
@@ -43,26 +42,27 @@ export default {
     },
     async onSubmit1() {
       const result = await this.v$.$validate();
-      if(result){
-        alert("success")
-        this.onSubmit()
-
-      }else{
-        alert("error")
+      if (result) {
+        // alert("success");
+        this.validation = true;
+        this.onSubmit();
+      } else {
+        // alert("error");
+        this.validation = false;
       }
     },
     logOut() {
       localStorage.removeItem("access_token");
-      this.at = ''
+      this.at = "";
     },
   },
   mounted() {
     let access_token_1 = "";
-      if (localStorage.access_token) {
-        access_token_1 = localStorage.access_token;
-        console.log("first run: " + access_token_1);
-        this.at = access_token_1;
-      }
+    if (localStorage.access_token) {
+      access_token_1 = localStorage.access_token;
+      console.log("first run: " + access_token_1);
+      this.at = access_token_1;
+    }
   },
 };
 </script>
@@ -82,13 +82,15 @@ export default {
       <form @submit.prevent="onSubmit">
         <h3>Login Here</h3>
 
-        <label for="username">Username</label>
+        <label for="username">Email</label>
         <input
           v-model="username"
           type="text"
-          placeholder="Email or Phone"
+          placeholder="Email"
           id="username"
         />
+        <div v-if="validation == false" class="validate">Invalid email!</div>
+
 
         <label for="password">Password</label>
         <input
@@ -103,13 +105,17 @@ export default {
           <div class="go">Google</div>
           <div class="fb">Facebook</div>
         </div>
-        <h1>{{ access_token_1 }}</h1>
       </form>
     </div>
   </div>
 </template>
 
 <style scoped>
+
+.validate{
+  color: rgb(255, 72, 72);
+  font-size: 15px;
+}
 .noti {
   width: 100px;
   height: 100px;
